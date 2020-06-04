@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<script src="https://static.robotwebtools.org/threejs/current/three.js"></script>
+<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="https://static.robotwebtools.org/roslibjs/current/roslib.js"></script>
+<script src="https://static.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
+
+    <script>
+      /**
+       * Setup all visualization elements when the page is loaded.
+       */
+
+    var normalised = new Float32Array(256);
+    for (var i = 0; i < 256; i++) {
+      normalised[i] = i / 255.0;
+    }
+    var floatArray = new Float32Array(1);
+
+    function makeColour(x) {
+        floatArray[0] = x;
+        let intArray = new Int32Array(floatArray.buffer)[0];
+        let r = normalised[(intArray >> 16) & 0xff];
+        let g = normalised[(intArray >> 8) & 0xff];
+        let b = normalised[(intArray) & 0xff];
+        return new THREE.Color(r,g,b);
+    }
+
+      function init() {
+        // Connect to ROS.
+        var ros = new ROSLIB.Ros({
+          url : 'ws://0.0.0.0:9090'
+        });
+
+        // Create the main viewer.
+        var viewer = new ROS3D.Viewer({
+          divID : 'viewer',
+          width : 800,
+          height : 600,
+          antialias : true
+        });
+
+        // Setup a client to listen to TFs.
+        var tfClient = new ROSLIB.TFClient({
+          ros : ros,
+          angularThres : 0.01,
+          transThres : 0.01,
+          rate : 10.0,
+          fixedFrame : '/camera_frame'
+        });
+
+        var cloudClient = new ROS3D.PointCloud2({
+            ros: ros,
+            tfClient: tfClient,
+            rootObject: viewer.scene,
+            topic: '/ros_rvv/viewed_area_pc2',
+            max_pts: 500000,
+            material: { size: 0.01},
+            colorsrc: 'rgb', colormap: function(x) { return makeColour(x); }
+        });
+      }
+    </script>
+</head>
+<body onload="init()">
+
+  <h1>PointCloud2 Example</h1>
+  <div id="viewer"></div>
+</body>
+</html>
