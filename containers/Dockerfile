@@ -44,6 +44,10 @@ RUN apt-get install -y \
     cp -r gazebo_models/cardboard_box ~/.gazebo/models/ && \
     cp -r gazebo_models/grey_tote ~/.gazebo/models/ && \
     cp -r gazebo_models/suv ~/.gazebo/models/ && \
+    cp -r gazebo_models/plastic_cup ~/.gazebo/models/ && \
+    cp -r gazebo_models/bowl ~/.gazebo/models/ && \
+    cp -r gazebo_models/cordless_drill ~/.gazebo/models/ && \
+    cp -r gazebo_models/coke_can ~/.gazebo/models/ && \
     rm -rf gazebo_models && \
     cp -r roboskel_ros_resources/gazebo/models/* ~/.gazebo/models && \
     rm -rf roboskel_ros_resources/graspit && \
