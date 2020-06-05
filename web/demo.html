@@ -4,9 +4,9 @@
 <meta charset="utf-8" />
 
 <script src="https://static.robotwebtools.org/threejs/current/three.js"></script>
-<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 <script src="https://static.robotwebtools.org/roslibjs/current/roslib.js"></script>
 <script src="https://static.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
+<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 
     <script>
       /**
@@ -31,7 +31,7 @@
       function init() {
         // Connect to ROS.
         var ros = new ROSLIB.Ros({
-          url : 'ws://0.0.0.0:9090'
+          url : 'ws://localhost:9090'
         });
 
         // Create the main viewer.
@@ -39,7 +39,8 @@
           divID : 'viewer',
           width : 800,
           height : 600,
-          antialias : true
+          antialias : true,
+          cameraPose : {x: 5, y:5, z:5}
         });
 
         // Setup a client to listen to TFs.
@@ -48,7 +49,7 @@
           angularThres : 0.01,
           transThres : 0.01,
           rate : 10.0,
-          fixedFrame : '/camera_frame'
+          fixedFrame : "/odom"
         });
 
         var cloudClient = new ROS3D.PointCloud2({
@@ -57,15 +58,24 @@
             rootObject: viewer.scene,
             topic: '/ros_rvv/viewed_area_pc2',
             max_pts: 500000,
-            material: { size: 0.01},
+            material: { size: 0.2},
             colorsrc: 'rgb', colormap: function(x) { return makeColour(x); }
+        });
+
+        var cloudClient2 = new ROS3D.PointCloud2({
+            ros: ros,
+            tfClient: tfClient,
+            rootObject: viewer.scene,
+            topic: '/octomap_tracking_server/changeset',
+            max_pts: 500000,
+            material: { size: 0.2, color: 0x990000}
         });
       }
     </script>
 </head>
 <body onload="init()">
 
-  <h1>PointCloud2 Example</h1>
+  <h1>Visualization Example</h1>
   <div id="viewer"></div>
 </body>
 </html>
