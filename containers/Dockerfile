@@ -1,6 +1,6 @@
 # Docker container to easily test the robot-rest-api functionality
 # At some point I will have to use docker compose to run multiple ros nodes
-# Build with: sudo docker build -t robot_rest_api:0.6 <robot-rest-api-location>/containers/Dockerfile
+# Build with: sudo docker build -t robot_rest_api:0.7 <robot-rest-api-location>/containers/Dockerfile
 # Run with: sudo docker-compose up --remove-orphans
 FROM ros:melodic-ros-core-bionic
 
