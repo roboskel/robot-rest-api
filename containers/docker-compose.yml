@@ -62,4 +62,18 @@ services:
             - rosbridge_server
             - tf2_web_republisher
             - octomap_mapping
+    apache_server:
+        image : robot_rest_api:0.7
+        network_mode: host
+        command: apachectl -D FOREGROUND
+        depends_on:
+            - simulation
+            - changes
+            - un_pause_simulation
+            - rosbridge_server
+            - tf2_web_republisher
+            - octomap_mapping
+        # ports:
+            # - "8080:80"
+
 
