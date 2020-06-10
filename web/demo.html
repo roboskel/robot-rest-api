@@ -5,6 +5,9 @@
 
 <script src="https://static.robotwebtools.org/threejs/current/three.js"></script>
 <script src="https://static.robotwebtools.org/roslibjs/current/roslib.js"></script>
+<script src="http://static.robotwebtools.org/threejs/current/ColladaLoader.min.js"></script>
+<script src="http://static.robotwebtools.org/ColladaAnimationCompress/current/ColladaLoader2.min.js"></script>
+<script src="http://static.robotwebtools.org/threejs/current/STLLoader.min.js"></script>
 <script src="https://static.robotwebtools.org/ros3djs/current/ros3d.min.js"></script>
 <script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
 
@@ -76,7 +79,7 @@
             tfClient : tfClient,
             path : 'http://localhost:80/',
             rootObject : viewer.scene,
-            loader : ROS3D.COLLADA_LOADER
+            loader : ROS3D.COLLADA_LOADER_2
         });
       }
     </script>
