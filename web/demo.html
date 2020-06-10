@@ -70,6 +70,14 @@
             max_pts: 500000,
             material: { size: 0.2, color: 0x990000}
         });
+
+        var urdfClient = new ROS3D.UrdfClient({
+            ros : ros,
+            tfClient : tfClient,
+            path : 'http://localhost:80/',
+            rootObject : viewer.scene,
+            loader : ROS3D.COLLADA_LOADER
+        });
       }
     </script>
 </head>
