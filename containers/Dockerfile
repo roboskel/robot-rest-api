@@ -38,7 +38,7 @@ RUN apt-get install -y \
     git clone https://github.com/gstavrinos/ros_rvv && \
     git clone https://github.com/carlosmccosta/laserscan_to_pointcloud && \
     git clone https://github.com/roboskel/roboskel_ros_resources && \
-    git clone -b testing --single-branch https://github.com/roboskel/robot-rest-api && \
+    git clone https://github.com/roboskel/robot-rest-api && \
     git clone https://github.com/osrf/gazebo_models && \
     cp -r robot-rest-api/web/* /var/www/html/ && \
     rm -rf robot-rest-api && \
