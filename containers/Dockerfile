@@ -1,6 +1,6 @@
 # Docker container to easily test the robot-rest-api functionality
 # At some point I will have to use docker compose to run multiple ros nodes
-# Build with: sudo docker build -t robot_rest_api:0.7 <robot-rest-api-location>/containers/Dockerfile
+# Build with: sudo docker build -t robot_rest_api <robot-rest-api-location>/containers/Dockerfile
 # Run with: sudo docker-compose up --remove-orphans
 FROM ros:melodic-ros-core-bionic
 
@@ -38,12 +38,12 @@ RUN apt-get install -y \
     git clone https://github.com/gstavrinos/ros_rvv && \
     git clone https://github.com/carlosmccosta/laserscan_to_pointcloud && \
     git clone https://github.com/roboskel/roboskel_ros_resources && \
-    git clone https://github.com/roboskel/robot-rest-api && \
+    git clone -b testing --single-branch https://github.com/roboskel/robot-rest-api && \
     git clone https://github.com/osrf/gazebo_models && \
     cp -r robot-rest-api/web/* /var/www/html/ && \
     rm -rf robot-rest-api && \
-    cp -r mir_robot/mir_description /var/www/ && \
-    cp -r roboskel_ros_resources /var/www/ && \
+    cp -r mir_robot/mir_description /var/www/html && \
+    cp -r roboskel_ros_resources /var/www/html && \
     mkdir -p ~/.gazebo/models && \
     cp -r gazebo_models/ambulance ~/.gazebo/models/ && \
     cp -r gazebo_models/cardboard_box ~/.gazebo/models/ && \
