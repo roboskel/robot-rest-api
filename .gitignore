@@ -1,0 +1,3 @@
+*.swp
+*.swo
+rest/rust/robot-rest-api/target/*
