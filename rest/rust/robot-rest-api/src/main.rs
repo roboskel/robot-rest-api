@@ -5,6 +5,8 @@ extern crate mysql;
 #[macro_use]
 extern crate rocket;
 #[macro_use]
+extern crate lazy_static;
+#[macro_use]
 extern crate serde_derive;
 
 use rocket_contrib::json;
@@ -12,10 +14,17 @@ use rocket_contrib::json;
 use rosrust;
 use rosrust_msg;
 
-// TODO
-const mysqldb: &str = "mysql://root:password@localhost:3307/mysql";
+const MYSQLDB: &str = "mysql://roboskel:r0b0sk3l@localhost:3306/roboDB";
 
-#[derive(Deserialize)]
+lazy_static! {
+    pub static ref pool: mysql::Pool = mysql::Pool::new(MYSQLDB).unwrap();
+    pub static ref goal_pub: rosrust::Publisher<rosrust_msg::geometry_msgs::PoseStamped> =
+        rosrust::publish("/move_base_simple/goal", 1).unwrap();
+    pub static ref mission_pub: rosrust::Publisher<rosrust_msg::roboskel_msgs::Mission> =
+        rosrust::publish("/mission_manager/mission", 1).unwrap();
+}
+
+#[derive(Deserialize, Debug)]
 struct Pose2D {
     x: f64,
     y: f64,
@@ -24,24 +33,19 @@ struct Pose2D {
 
 #[derive(Deserialize)]
 struct Mission {
-    id: i64,
     name: String,
     poses: Vec<Pose2D>,
 }
 
+// TODO handle error during database access or ROS communications
+
 #[post("/robot_goal", format = "json", data = "<j>")]
 fn robot_goal(j: json::Json<Pose2D>) -> json::JsonValue {
-    let goal_pub = rosrust::publish("move_base_simple/goal", 1).unwrap();
-
-    rosrust::rate(1.0).sleep();
-
     let mut msg = rosrust_msg::geometry_msgs::PoseStamped::default();
     msg.header.frame_id = format!("map");
     msg.pose.position.x = j.x;
     msg.pose.position.y = j.y;
     msg.pose.orientation.w = 1.0;
-    // TODO create custom PoseStamped msg for the "stay" field
-    // msg.stay = j.stay;
 
     goal_pub.send(msg).unwrap();
     json!({ "status": "ok" })
@@ -49,35 +53,78 @@ fn robot_goal(j: json::Json<Pose2D>) -> json::JsonValue {
 
 #[post("/create_mission", format = "json", data = "<j>")]
 fn create_mission(j: json::Json<Mission>) -> json::JsonValue {
-    let mut mission = Mission {
-        id: 0,
-        name: String::new(),
-        poses: Vec::new(),
-    };
+    // Populate the missions table
+    let mut s = format!("INSERT INTO missions (name) VALUES ('{}');", j.name);
+    let mid = pool
+        .prepare(s)
+        .unwrap()
+        .execute(())
+        .unwrap()
+        .last_insert_id();
 
-    let pool = mysql::Pool::new(mysqldb).unwrap();
-    // TODO INSERT
+    // Populate the poses table
+    for p in j.poses.iter() {
+        s = format!(
+            "INSERT INTO poses (x, y, stay) VALUES ({}, {}, {});",
+            p.x, p.y, p.stay
+        );
+        let pid = pool
+            .prepare(s)
+            .unwrap()
+            .execute(())
+            .unwrap()
+            .last_insert_id();
+
+        // Populate the poses_in_missions table
+        s = format!(
+            "INSERT INTO poses_in_missions (mid,pid) VALUES ({},{})",
+            mid, pid
+        );
+        pool.prepare(s).unwrap().execute(()).unwrap();
+    }
 
     json!({ "status" : "ok" })
 }
 
-#[post("/update_mission", format = "json", data = "<j>")]
-fn update_mission(j: json::Json<Mission>) -> json::JsonValue {
-    let mut mission = Mission {
-        id: 0,
-        name: String::new(),
-        poses: Vec::new(),
-    };
+#[post("/play_mission", format = "json", data = "<j>")]
+fn play_mission(j: json::Json<Mission>) -> json::JsonValue {
+    let mut msg = rosrust_msg::roboskel_msgs::Mission::default();
+    msg.name = j.name.clone();
 
-    // TODO UPDATE based on id
+    let s = format!("SELECT x,y,stay FROM poses INNER JOIN (SELECT * FROM poses_in_missions WHERE mid=(SELECT id FROM missions WHERE name='{}')) AS A ON id=pid", j.name);
+
+    for r in pool.prepare(s).unwrap().execute(()).unwrap() {
+        let o = r.unwrap().clone();
+        let x: f64 = (o.get(0)).unwrap();
+        let y: f64 = (o.get(1)).unwrap();
+        let stay: f64 = (o.get(2)).unwrap();
+        let mut ps = rosrust_msg::geometry_msgs::PoseStamped::default();
+        ps.header.frame_id = String::from("map");
+        ps.header.stamp = rosrust::now();
+        ps.pose.position.x = x;
+        ps.pose.position.y = y;
+        ps.pose.orientation.w = 1.0;
+        msg.poses.push(ps);
+        msg.stay.push(stay);
+    }
+
+    mission_pub.send(msg).unwrap();
 
     json!({ "status" : "ok" })
+}
+
+fn lazy_and_unsafe() {
+    lazy_static::initialize(&pool);
+    lazy_static::initialize(&goal_pub);
+    lazy_static::initialize(&mission_pub);
 }
 
 fn main() {
     rosrust::init("robot_rest_api");
 
+    lazy_and_unsafe();
+
     rocket::ignite()
-        .mount("/api", routes![robot_goal, create_mission, update_mission])
+        .mount("/api", routes![robot_goal, create_mission, play_mission])
         .launch();
 }
