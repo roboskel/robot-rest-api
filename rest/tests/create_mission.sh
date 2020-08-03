@@ -1,0 +1,1 @@
+curl -H 'Content-Type: application/json' --data '{"name": "Test mission!", "poses":[{"x": 1.1, "y": 4.4, "stay": 3.0},{"x": 2.2, "y": 5.5, "stay": 2.0},{"x": 3.3, "y": 6.6, "stay": 1.0}]}' http://localhost:8000/api/create_mission
