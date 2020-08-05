@@ -41,10 +41,11 @@ CREATE TABLE IF NOT EXISTS poses_in_missions (
 -- MySQL8 password changes
 SET old_passwords=0;
 
-DROP USER IF EXISTS roboskel@localhost;
+DROP USER IF EXISTS 'roboskel'@'localhost';
+DROP USER IF EXISTS 'roboskel'@'127.0.0.1';
 
-CREATE USER IF NOT EXISTS roboskel@localhost IDENTIFIED BY 'r0b0sk3l';
-GRANT ALL PRIVILEGES ON * . * TO roboskel@localhost;
+CREATE USER IF NOT EXISTS 'roboskel'@'localhost' IDENTIFIED BY 'r0b0sk3l';
+GRANT ALL PRIVILEGES ON * . * TO 'roboskel'@'localhost';
 
-CREATE USER IF NOT EXISTS roboskel@127.0.0.1 IDENTIFIED BY 'r0b0sk3l';
-GRANT ALL PRIVILEGES ON * . * TO roboskel@127.0.0.1;
+CREATE USER IF NOT EXISTS 'roboskel'@'127.0.0.1' IDENTIFIED BY 'r0b0sk3l';
+GRANT ALL PRIVILEGES ON * . * TO 'roboskel'@'127.0.0.1';
