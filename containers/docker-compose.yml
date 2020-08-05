@@ -16,14 +16,14 @@ services:
         command: bash -c "sleep 10; rosservice call /gazebo/unpause_physics \"{}\""
         depends_on:
             - simulation
-    dummy_teleop:
-        image : robot_rest_api
-        network_mode: host
-        command: bash -c " sleep 5; rostopic pub /cmd_vel geometry_msgs/Twist \"[0.0, 0.0, 0.0]\" \"[0.0, 0.0, 0.5]\" -r 10"
-        depends_on:
-            - simulation
-            - changes
-            - un_pause_simulation
+    # dummy_teleop:
+        # image : robot_rest_api
+        # network_mode: host
+        # command: bash -c " sleep 5; rostopic pub /cmd_vel geometry_msgs/Twist \"[0.0, 0.0, 0.0]\" \"[0.0, 0.0, 0.5]\" -r 10"
+        # depends_on:
+            # - simulation
+            # - changes
+            # - un_pause_simulation
     rosbridge_server:
         image : robot_rest_api
         network_mode: host
@@ -62,6 +62,35 @@ services:
             - rosbridge_server
             - tf2_web_republisher
             - octomap_mapping
+    amcl:
+        image : robot_rest_api
+        network_mode: host
+        command: bash -c "sleep 10; roslaunch mir_navigation amcl.launch"
+        depends_on:
+            - simulation
+            - changes
+            - un_pause_simulation
+            - rosbridge_server
+            - tf2_web_republisher
+            - octomap_mapping
+    move_base:
+        image : robot_rest_api
+        network_mode: host
+        command: bash -c "sleep 12; roslaunch mir_navigation start_planner.launch"
+        depends_on:
+            - simulation
+            - changes
+            - un_pause_simulation
+            - rosbridge_server
+            - tf2_web_republisher
+            - octomap_mapping
+            - amcl
+    mission_manager:
+        image : robot_rest_api
+        network_mode: host
+        command: bash -c "python /opt/catkin_ws/src/robot-rest-api/ros/mission_manager.py"
+        depends_on:
+            - simulation
     apache_server:
         image : robot_rest_api
         network_mode: host
@@ -73,7 +102,28 @@ services:
             - rosbridge_server
             - tf2_web_republisher
             - octomap_mapping
-        # ports:
-            # - "8080:80"
+        # # ports:
+            # # - "8080:80"
+    mysqld:
+        image : mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: yeap
+        network_mode: host
+    init_db:
+        image : robot_rest_api
+        network_mode: host
+        command: bash -c "sleep 10; mysql --protocol=tcp < /opt/catkin_ws/src/robot-rest-api/rest/mysql/init.sql"
+        depends_on:
+            - mysqld
+    rest_server:
+        image : robot_rest_api
+        network_mode: host
+        command: bash -c "sleep 15; . ~/.cargo/env && cd /opt/catkin_ws/src/robot-rest-api/rest/rust/robot-rest-api/ && cargo run"
+        depends_on:
+            - apache_server
+            - mysqld
+            - init_db
 
 

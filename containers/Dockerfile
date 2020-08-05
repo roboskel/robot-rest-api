@@ -9,6 +9,7 @@ LABEL maintainer="George Stavrinos <gstavrinos@iit.demokritos.gr>"
 RUN apt-get update && apt-get install -y \
     apache2 \
     xvfb \
+    mysql-server \
     python-catkin-tools \
     ros-melodic-costmap-2d \
     ros-melodic-costmap-queue \
@@ -21,7 +22,7 @@ RUN apt-get update && apt-get install -y \
     ros-melodic-rospy-message-converter \
     ros-melodic-gazebo-ros-control \
     ros-melodic-gazebo-plugins && \
-    rm -rf /var/lib/apt-get/lists/*
+    rm -rf /var/lib/apt-get/lists/* 
 
 RUN mkdir -p /opt/catkin_ws/src
 
@@ -41,7 +42,7 @@ RUN apt-get install -y \
     git clone https://github.com/roboskel/robot-rest-api && \
     git clone https://github.com/osrf/gazebo_models && \
     cp -r robot-rest-api/web/* /var/www/html/ && \
-    rm -rf robot-rest-api && \
+    # rm -rf robot-rest-api && \
     cp -r mir_robot/mir_description /var/www/html && \
     cp -r roboskel_ros_resources /var/www/html && \
     mkdir -p ~/.gazebo/models && \
@@ -70,7 +71,12 @@ RUN sed --in-place --expression \
     '$isource "/opt/catkin_ws/devel/setup.bash"' \
     /ros_entrypoint.sh
 
+RUN sh /opt/catkin_ws/src/robot-rest-api/rest/rust/install_all.sh
+
+RUN /bin/bash -c ". /opt/ros/melodic/setup.bash && . /opt/catkin_ws/devel/setup.bash && . ~/.cargo/env && cd /opt/catkin_ws/src/robot-rest-api/rest/rust/robot-rest-api/ && cargo build"
+
 EXPOSE 80
+# EXPOSE 3306
 # EXPOSE 11311/udp
 # EXPOSE 11311/tcp
 
