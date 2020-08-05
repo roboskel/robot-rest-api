@@ -45,3 +45,6 @@ DROP USER IF EXISTS roboskel@localhost;
 
 CREATE USER IF NOT EXISTS roboskel@localhost IDENTIFIED BY 'r0b0sk3l';
 GRANT ALL PRIVILEGES ON * . * TO roboskel@localhost;
+
+CREATE USER IF NOT EXISTS roboskel@127.0.0.1 IDENTIFIED BY 'r0b0sk3l';
+GRANT ALL PRIVILEGES ON * . * TO roboskel@127.0.0.1;
