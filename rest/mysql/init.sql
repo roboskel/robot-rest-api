@@ -38,9 +38,6 @@ CREATE TABLE IF NOT EXISTS poses_in_missions (
 
 );
 
--- MySQL8 password changes
-SET old_passwords=0;
-
 DROP USER IF EXISTS 'roboskel'@'localhost';
 DROP USER IF EXISTS 'roboskel'@'127.0.0.1';
 
