@@ -37,7 +37,15 @@ struct Mission {
     poses: Vec<Pose2D>,
 }
 
+#[derive(Deserialize)]
+struct State {
+    state: String,
+}
+
 // TODO handle error during database access or ROS communications
+// TODO get maps
+// TODO add reports
+// TODO get reports
 
 #[post("/robot_goal", format = "json", data = "<j>")]
 fn robot_goal(j: json::Json<Pose2D>) -> json::JsonValue {
@@ -113,6 +121,41 @@ fn play_mission(j: json::Json<Mission>) -> json::JsonValue {
     json!({ "status" : "ok" })
 }
 
+#[get("/get_missions")]
+fn get_missions() -> json::JsonValue {
+    let s = format!("SELECT name FROM missions");
+
+    let mut v: Vec<String> = vec![];
+    for r in pool.prepare(s).unwrap().execute(()).unwrap() {
+        let mut o = r.unwrap().clone();
+        // let mut row = r.unwrap().next().unwrap().unwrap();
+        let name: String = o.take("name").unwrap();
+        v.push(name.clone());
+        println!("{}", name);
+    }
+
+    json!({ "missions": v })
+}
+
+#[post("/estop", format = "json", data = "<j>")]
+fn estop(j: json::Json<State>) -> json::JsonValue {
+    // TODO implement twist mux for software e-stop
+    if j.state.eq("on") {
+        // TODO
+        println!("estop on");
+    } else {
+        // TODO
+        println!("estop off");
+    }
+    json!({ "status" : "ok" })
+}
+
+#[get("/ping")]
+fn ping() -> json::JsonValue {
+    // TODO send a keep alive message
+    json!({ "status" : "ok" })
+}
+
 fn lazy_and_unsafe() {
     lazy_static::initialize(&pool);
     lazy_static::initialize(&goal_pub);
@@ -125,6 +168,16 @@ fn main() {
     lazy_and_unsafe();
 
     rocket::ignite()
-        .mount("/api", routes![robot_goal, create_mission, play_mission])
+        .mount(
+            "/api",
+            routes![
+                robot_goal,
+                create_mission,
+                play_mission,
+                get_missions,
+                estop,
+                ping
+            ],
+        )
         .launch();
 }
