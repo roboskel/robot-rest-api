@@ -128,10 +128,8 @@ fn get_missions() -> json::JsonValue {
     let mut v: Vec<String> = vec![];
     for r in pool.prepare(s).unwrap().execute(()).unwrap() {
         let mut o = r.unwrap().clone();
-        // let mut row = r.unwrap().next().unwrap().unwrap();
         let name: String = o.take("name").unwrap();
         v.push(name.clone());
-        println!("{}", name);
     }
 
     json!({ "missions": v })
